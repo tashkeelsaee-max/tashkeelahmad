@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2a1608">
+<title>Juicy Slice</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--ui:ui-rounded,"SF Pro Rounded","Nunito","Segoe UI",system-ui,sans-serif}
+  html,body{height:100%;background:#1a0d05;overflow:hidden;font-family:var(--ui);color:#fff}
+  body{touch-action:none;user-select:none;-webkit-user-select:none}
+  canvas{position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;cursor:none}
+  .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));z-index:5;pointer-events:none;background:radial-gradient(ellipse at center,rgba(20,8,0,.35),rgba(20,8,0,.75))}
+  .card{pointer-events:auto;width:100%;max-width:400px;max-height:100%;overflow-y:auto;background:linear-gradient(160deg,rgba(92,52,24,.96),rgba(52,26,10,.97));border:2px solid rgba(255,200,120,.25);border-radius:26px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12);animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{from{transform:scale(.85);opacity:0}}
+  .hidden{display:none!important}
+  .logo{text-align:center;font-weight:900;line-height:.9;font-size:46px;letter-spacing:1px;margin-bottom:14px}
+  .logo .a{color:#ffeb3b;text-shadow:0 4px 0 #8a4b00}
+  .logo .b{color:#ff5252;text-shadow:0 4px 0 #7a1010;display:block}
+  .logo.sm{font-size:30px;margin-bottom:10px}
+  .tabs{display:flex;background:rgba(0,0,0,.3);border-radius:14px;padding:4px;margin-bottom:14px}
+  .tabs button{flex:1;border:none;background:none;color:#e8c9a8;font:800 15px var(--ui);padding:9px;border-radius:10px;cursor:pointer}
+  .tabs button.on{background:#ffb300;color:#3a1d00}
+  label{display:block;font-weight:800;font-size:13px;color:#ffd9a8;margin-bottom:10px}
+  input{display:block;width:100%;margin-top:5px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);color:#fff;font:700 16px var(--ui);outline:none;user-select:text;-webkit-user-select:text}
+  input:focus{border-color:#ffb300}
+  .pw{position:relative}.pw input{padding-right:46px}
+  .pw button{position:absolute;right:6px;top:50%;transform:translateY(-38%);border:none;background:none;font-size:18px;cursor:pointer;padding:6px}
+  .err{min-height:20px;color:#ff8a80;font-weight:800;font-size:13px;margin:2px 0 8px;text-align:center}
+  .big{display:block;width:100%;border:none;border-radius:16px;padding:14px;font:900 21px var(--ui);color:#3a1d00;background:linear-gradient(#ffd54f,#ffa000);box-shadow:0 5px 0 #a35f00;cursor:pointer;letter-spacing:.5px}
+  .big:active{transform:translateY(4px);box-shadow:0 1px 0 #a35f00}
+  .big.green{background:linear-gradient(#9ccc65,#558b2f);box-shadow:0 5px 0 #2e5016;color:#fff}
+  .big.ghost{background:rgba(255,255,255,.1);box-shadow:0 5px 0 rgba(0,0,0,.3);color:#fff}
+  .row{display:flex;gap:10px;margin-top:12px}.row>*{flex:1}
+  .link{display:block;margin:14px auto 0;border:none;background:none;color:#ffd54f;font:800 15px var(--ui);text-decoration:underline;cursor:pointer}
+  .note{text-align:center;font-size:12px;color:#c9a888;margin-top:10px}
+  .profile{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.25);border-radius:16px;padding:10px 12px;margin-bottom:12px}
+  .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:900 22px var(--ui);color:#fff;flex:none;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+  .profile b{display:block;font-size:18px}.profile small{color:#d9b894;font-size:12px;font-weight:700}
+  .profile .grow{flex:1;min-width:0}
+  .chip{border:none;border-radius:20px;padding:7px 12px;background:rgba(255,255,255,.12);color:#fff;font:800 13px var(--ui);cursor:pointer}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+  .stat{background:rgba(0,0,0,.25);border-radius:12px;padding:8px 2px;text-align:center}
+  .stat b{display:block;font-size:20px;color:#ffd54f}.stat small{font-size:10px;font-weight:800;color:#d9b894;letter-spacing:.5px}
+  h3{font-size:14px;color:#ffd9a8;margin:16px 0 8px;font-weight:900;display:flex;justify-content:space-between}
+  .knives{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .knife{position:relative;background:rgba(0,0,0,.28);border:2px solid transparent;border-radius:12px;padding:6px 4px 5px;text-align:center;cursor:pointer}
+  .knife.on{border-color:#ffb300;background:rgba(255,179,0,.15)}
+  .knife canvas{position:static;width:100%;height:34px;cursor:pointer}
+  .knife span{display:block;font-size:10.5px;font-weight:800;color:#f3dcc0;line-height:1.2}
+  .knife.locked canvas{filter:grayscale(1) brightness(.45)}
+  .knife.locked span{color:#a08060}
+  .knife .lock{position:absolute;top:4px;right:6px;font-size:12px}
+  .toggles{display:flex;gap:6px;margin-top:14px}
+  .toggles button{flex:1;border:none;border-radius:12px;padding:9px 4px;background:rgba(255,255,255,.12);color:#fff;font:800 13px var(--ui);cursor:pointer}
+  .toggles button.off{opacity:.45;text-decoration:line-through}
+  .center{text-align:center}
+  .over-title{font:900 40px var(--ui);text-align:center;color:#ff5252;text-shadow:0 4px 0 #6d0b0b}
+  .bigscore{font:900 64px var(--ui);text-align:center;color:#ffd54f;line-height:1;margin:6px 0 2px;text-shadow:0 4px 0 #8a4b00}
+  .sub{text-align:center;font-weight:800;color:#f3dcc0}
+  .badge{display:inline-block;margin-top:8px;padding:6px 14px;border-radius:20px;background:#ffeb3b;color:#5a3000;font-weight:900;animation:pulse 1s infinite}
+  @keyframes pulse{50%{transform:scale(1.07)}}
+  .unlock{margin-top:12px;padding:10px;border-radius:14px;background:rgba(255,215,0,.15);border:2px dashed #ffd54f;text-align:center;font-weight:900;color:#ffe082}
+  .lbrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);margin-bottom:6px}
+  .lbrow.me{background:rgba(255,179,0,.22);border:2px solid #ffb300}
+  .lbrow .rk{width:28px;text-align:center;font-weight:900;font-size:17px;color:#ffd9a8}
+  .lbrow .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:900;flex:none}
+  .lbrow .nm{flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbrow .sc{font-weight:900;color:#ffd54f;font-size:18px}
+  #pauseBtn{position:fixed;top:calc(14px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:4;width:46px;height:46px;border-radius:50%;border:none;background:rgba(0,0,0,.35);color:#fff;font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<button id="pauseBtn" class="hidden" aria-label="Pause">⏸</button>
+
+<!-- AUTH -->
+<section id="auth" class="screen hidden">
+  <div class="card">
+    <div class="logo"><span class="a">JUICY</span><span class="b">SLICE</span></div>
+    <div class="tabs"><button id="tabLogin" class="on">Login</button><button id="tabSignup">Create Account</button></div>
+    <form id="authForm" autocomplete="on">
+      <label id="nameWrap">Username<input id="uName" maxlength="15" autocomplete="username" placeholder="e.g. FruitKing_7" autocapitalize="off" spellcheck="false"></label>
+      <label id="emailWrap" class="hidden">Email<input id="uEmail" type="email" maxlength="80" autocomplete="email" placeholder="you@example.com" autocapitalize="off" spellcheck="false"></label>
+      <label>Password<div class="pw"><input id="uPass" type="password" maxlength="40" autocomplete="current-password" placeholder="At least 4 characters"><button type="button" id="eye" aria-label="Show password">👁️</button></div></label>
+      <label id="confirmWrap" class="hidden">Confirm Password<input id="uPass2" type="password" maxlength="40" autocomplete="new-password"></label>
+      <div id="authErr" class="err"></div>
+      <button class="big" type="submit" id="authSubmit">LOGIN</button>
+    </form>
+    <button class="link hidden" id="forgotBtn">Forgot password?</button>
+    <button class="link" id="guestBtn">Play as Guest</button>
+    <p class="note" id="authNote">🔒 Your account is saved securely on this device.</p>
+  </div>
+</section>
+
+<!-- HOME -->
+<section id="home" class="screen hidden">
+  <div class="card">
+    <div class="logo sm"><span class="a">JUICY</span> <span class="b" style="display:inline">SLICE</span></div>
+    <div class="profile">
+      <div class="avatar" id="avatar">A</div>
+      <div class="grow"><b id="pName">Player</b><small id="pSub"></small></div>
+      <button class="chip" id="logoutBtn">Logout</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sBest">0</b><small>BEST</small></div>
+      <div class="stat"><b id="sLevel">1</b><small>TOP LEVEL</small></div>
+      <div class="stat"><b id="sSliced">0</b><small>SLICED</small></div>
+      <div class="stat"><b id="sGames">0</b><small>GAMES</small></div>
+    </div>
+    <button class="big" id="playBtn">▶ PLAY</button>
+    <div class="row"><button class="big ghost" id="lbBtn" style="font-size:17px;padding:11px">🏆 Top Players</button></div>
+    <h3><span>🔪 Your Knives</span><span id="kCount"></span></h3>
+    <div class="knives" id="knives"></div>
+    <div class="toggles">
+      <button id="tSfx">🔊 Sound</button><button id="tMusic">🎵 Music</button><button id="tVoice">🗣️ Voice</button>
+    </div>
+    <div class="center" style="margin-top:12px;font-size:12px">
+      <a href="privacy.html" target="_blank" style="color:#d9b894">Privacy Policy</a>
+      <span id="delSep" style="color:#8a6a4a"> • </span><button class="link" id="delBtn" style="display:inline;margin:0;font-size:12px;color:#ff8a80">Delete account</button>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section id="leaders" class="screen hidden">
+  <div class="card">
+    <div class="over-title" style="font-size:32px;color:#ffd54f;text-shadow:0 4px 0 #8a4b00">🏆 Top Players</div>
+    <p class="sub" id="lbScope" style="font-size:12px;margin:4px 0 12px"></p>
+    <div id="lbList"></div>
+    <div class="row"><button class="big ghost" id="lbBack">← Back</button></div>
+  </div>
+</section>
+
+<!-- LOADING -->
+<section id="loading" class="screen hidden">
+  <div class="card center"><div class="logo"><span class="a">JUICY</span><span class="b">SLICE</span></div><p class="sub" id="loadingTxt">Loading…</p></div>
+</section>
+
+<!-- DELETE ACCOUNT -->
+<section id="delete" class="screen hidden">
+  <div class="card">
+    <div class="over-title" style="font-size:30px">Delete account?</div>
+    <p class="sub" style="margin:10px 0 14px">This permanently deletes <b id="delName"></b>, your scores, knives and leaderboard entry. This cannot be undone.</p>
+    <label id="delPwWrap">Enter your password to confirm<input id="delPw" type="password" maxlength="40" autocomplete="current-password"></label>
+    <div id="delErr" class="err"></div>
+    <button class="big" id="delYes" style="background:linear-gradient(#ff8a80,#e53935);box-shadow:0 5px 0 #8e1c1c;color:#fff">DELETE FOREVER</button>
+    <div class="row"><button class="big ghost" id="delNo">Cancel</button></div>
+  </div>
+</section>
+
+<!-- PAUSE -->
+<section id="pause" class="screen hidden">
+  <div class="card center">
+    <div class="over-title" style="color:#ffd54f;text-shadow:0 4px 0 #8a4b00">PAUSED</div>
+    <p class="sub" id="pauseInfo" style="margin:8px 0 14px"></p>
+    <button class="big green" id="resumeBtn">▶ RESUME</button>
+    <div class="row"><button class="big ghost" id="quitBtn">🏠 Home</button></div>
+  </div>
+</section>
+
+<!-- GAME OVER -->
+<section id="over" class="screen hidden">
+  <div class="card">
+    <div class="over-title" id="overTitle">GAME OVER</div>
+    <div class="bigscore" id="overScore">0</div>
+    <p class="sub" id="overInfo"></p>
+    <div class="center" id="overBadge"></div>
+    <div id="overUnlock"></div>
+    <div class="row"><button class="big" id="againBtn">↻ PLAY AGAIN</button></div>
+    <div class="row"><button class="big ghost" id="homeBtn">🏠 Home</button></div>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   JUICY SLICE — single-file game (canvas + WebAudio)
+   ========================================================= */
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const UI = 'ui-rounded,"SF Pro Rounded","Nunito","Segoe UI",system-ui,sans-serif';
+let W, H, DPR, U, G, safeTop = 0;
+
+/* ---------------- data ---------------- */
+const FRUITS = [
+  {e:'🍉', c:'#ff3b4f'}, {e:'🍊', c:'#ff9800'}, {e:'🍎', c:'#e53935'}, {e:'🍋', c:'#ffe135'},
+  {e:'🍌', c:'#fff176'}, {e:'🍍', c:'#ffd54f'}, {e:'🍓', c:'#ff1744'}, {e:'🥝', c:'#8bc34a'},
+  {e:'🍑', c:'#ffab91'}, {e:'🍇', c:'#8e24aa'}, {e:'🥥', c:'#f5f5f5'}, {e:'🍐', c:'#cddc39'},
+];
+const SMALL = [{e:'🍒', c:'#d50000'}, {e:'🫐', c:'#3f51b5'}];
+const SPECIAL = {
+  bomb:{e:'💣', c:'#ff6d00', glow:'rgba(255,40,40,'},
+  ice: {e:'❄️', c:'#81d4fa', glow:'rgba(120,200,255,'},
+  star:{e:'🌟', c:'#ffd700', glow:'rgba(255,215,0,'},
+};
+const KNIVES = [
+  {id:'kitchen', name:'Kitchen Knife',  need:0,   blade:['#ffffff','#9aa5b1'], handle:'#2b2b2b', len:1.5, w:.38, trail:['rgba(150,220,255,.28)','#ffffff']},
+  {id:'cleaver', name:'Butcher Cleaver',need:30,  blade:['#eeeeee','#7a7a7a'], handle:'#7b4a26', len:1.25,w:.78, trail:['rgba(255,170,80,.32)','#fff3e0'], cleaver:true},
+  {id:'gold',    name:'Golden Blade',   need:80,  blade:['#fff9c4','#c9a227'], handle:'#8b0000', len:1.6, w:.40, trail:['rgba(255,215,0,.38)','#fff8d0'], glow:'#ffd54f'},
+  {id:'ice',     name:'Ice Katana',     need:150, blade:['#e1f5fe','#4fc3f7'], handle:'#1a237e', len:2.1, w:.27, trail:['rgba(80,200,255,.42)','#e1f5fe'], glow:'#4fc3f7'},
+  {id:'fire',    name:'Fire Sword',     need:250, blade:['#ffe082','#ff3d00'], handle:'#3e2723', len:1.9, w:.36, trail:['rgba(255,80,0,.48)','#ffe0b2'], glow:'#ff6d00'},
+  {id:'rainbow', name:'Rainbow Blade',  need:400, blade:['#ffffff','#b388ff'], handle:'#311b92', len:1.9, w:.36, trail:'rainbow', glow:'#e040fb', rainbow:true},
+];
+const knifeById = id => KNIVES.find(k => k.id === id) || KNIVES[0];
+
+/* level thresholds: 0,10,25,45,70,100,135,175,220,270,... */
+const TH = [0]; for (let i=1;i<80;i++) TH[i] = TH[i-1] + 10 + (i-1)*5;
+const levelFor = s => { let L=1; while (s >= TH[L]) L++; return L; };
+function diff(L){
+  return {
+    g:        Math.min(0.70 + (L-1)*0.06, 1.18),          // gravity / speed
+    minN:     L<=3 ? 1 : L<=6 ? 2 : 3,
+    maxN:     L===1 ? 1 : L===2 ? 2 : L<=4 ? 3 : L<=7 ? 4 : 5,
+    gap:      Math.max(0.8, 2.5 - (L-1)*0.2),              // seconds between waves
+    bomb:     L<=2 ? 0 : Math.min(0.07 + (L-3)*0.03, 0.27),
+    ice:      L>=3 ? 0.05 : 0,
+    star:     L>=4 ? 0.035 : 0,
+    small:    L>=5 ? Math.min(0.12 + (L-5)*0.03, 0.3) : 0,
+    size:     Math.max(0.78, 1 - (L-1)*0.025),
+  };
+}
+const LEVEL_NOTES = {1:'Slice the fruit!', 2:'Two at a time!', 3:'Watch out — 💣 bombs! ❄️ Ice slows time', 4:'🌟 Golden Star brings fruit rain!', 5:'🍒 Tiny fruits = 2 points!'};
+
+/* =========================================================
+   🔥 FIREBASE SETUP — paste your project's config here.
+   Firebase Console → Project settings → Your apps → Web app → "firebaseConfig".
+   Leave apiKey empty to use on-device accounts only.
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD_5A0jke2nVvDHVKq6JmDQReySvmtDqsM",
+  authDomain: "juicy-slice.firebaseapp.com",
+  projectId: "juicy-slice",
+  storageBucket: "juicy-slice.firebasestorage.app",
+  messagingSenderId: "825718106129",
+  appId: "1:825718106129:web:afaa3400dce391dc4369b0",
+  measurementId: "G-GXR9H467MF"
+};
+const FIREBASE_VERSION = "10.12.2";
+
+/* ---------------- storage / accounts ---------------- */
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} },
+};
+let accounts = LS.get('js_accounts', {});
+let userKey = null, user = null;
+const settings = Object.assign({sfx:true, music:true, voice:true}, LS.get('js_settings', {}));
+const PROFILE_FIELDS = ['name','created','best','sliced','games','topLevel','knife'];
+
+function newProfile(name){ return {name, created:Date.now(), best:0, sliced:0, games:0, topLevel:1, knife:'kitchen'}; }
+function pickProfile(o){ const p = {}; for (const f of PROFILE_FIELDS) if (o[f] !== undefined) p[f] = o[f]; return p; }
+function saveUser(){
+  if (!user) return;
+  if (userKey === '__guest') LS.set('js_guest', user);
+  else if (cloud.on && cloud.uid === userKey){
+    LS.set('js_cloudcache_' + userKey, user);
+    cloud.saveProfile(userKey, pickProfile(user)).catch(e => console.warn('cloud save failed', e));
+  }
+  else { accounts[userKey] = user; LS.set('js_accounts', accounts); }
+}
+async function hashPw(salt, pw){
+  const data = salt + ':' + pw;
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  } catch(e){
+    let h1 = 0x811c9dc5, h2 = 0x1234567;
+    for (let i=0;i<data.length;i++){ h1 = Math.imul(h1 ^ data.charCodeAt(i), 16777619); h2 = Math.imul(h2 + data.charCodeAt(i), 2654435761); }
+    return 'f' + (h1>>>0).toString(16) + (h2>>>0).toString(16);
+  }
+}
+const randHex = n => Array.from({length:n},()=>Math.floor(Math.random()*16).toString(16)).join('');
+
+/* ---------------- Firebase (online accounts + leaderboard) ---------------- */
+const cloud = {
+  on:false, uid:null, fb:{}, auth:null, db:null,
+  async init(){
+    if (!FIREBASE_CONFIG.apiKey) return false;
+    try {
+      const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
+      const [app, auth, fs] = await Promise.all([
+        import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+      this.fb = {...auth, ...fs};
+      const a = app.initializeApp(FIREBASE_CONFIG);
+      try { this.auth = auth.initializeAuth(a, {persistence:[auth.indexedDBLocalPersistence, auth.browserLocalPersistence]}); }
+      catch(e){ this.auth = auth.getAuth(a); }
+      this.db = fs.getFirestore(a);
+      this.on = true; return true;
+    } catch(e){ console.warn('Firebase unavailable, using on-device accounts', e); this.on = false; return false; }
+  },
+  userDoc(uid){ return this.fb.doc(this.db, 'users', uid); },
+  async saveProfile(uid, p){ await this.fb.setDoc(this.userDoc(uid), p, {merge:true}); },
+  async loadProfile(uid){ const s = await this.fb.getDoc(this.userDoc(uid)); return s.exists() ? s.data() : null; },
+  async nameTaken(name){ const s = await this.fb.getDoc(this.fb.doc(this.db, 'usernames', name.toLowerCase())); return s.exists(); },
+  signingUp:false,
+  async signup(name, email, pw){
+    if (await this.nameTaken(name)) throw {code:'name-taken'};
+    this.signingUp = true;
+    try { return await this._signup(name, email, pw); } finally { this.signingUp = false; }
+  },
+  async _signup(name, email, pw){
+    const cred = await this.fb.createUserWithEmailAndPassword(this.auth, email, pw);
+    const uid = cred.user.uid, profile = newProfile(name);
+    try {
+      await this.fb.runTransaction(this.db, async tx => {
+        const nref = this.fb.doc(this.db, 'usernames', name.toLowerCase());
+        if ((await tx.get(nref)).exists()) throw {code:'name-taken'};
+        tx.set(nref, {uid});
+        tx.set(this.userDoc(uid), profile);
+      });
+    } catch(e){ try { await cred.user.delete(); } catch(_){} throw e; }
+    try { await this.fb.updateProfile(cred.user, {displayName:name}); } catch(_){}
+    return {uid, profile};
+  },
+  async login(email, pw){ return (await this.fb.signInWithEmailAndPassword(this.auth, email, pw)).user.uid; },
+  async reset(email){ await this.fb.sendPasswordResetEmail(this.auth, email); },
+  async logout(){ await this.fb.signOut(this.auth); },
+  async deleteAccount(pw, name){
+    const u = this.auth.currentUser; if (!u) throw {code:'auth/no-current-user'};
+    const cred = this.fb.EmailAuthProvider.credential(u.email, pw);
+    await this.fb.reauthenticateWithCredential(u, cred);
+    await this.fb.deleteDoc(this.userDoc(u.uid));
+    try { await this.fb.deleteDoc(this.fb.doc(this.db, 'usernames', name.toLowerCase())); } catch(_){}
+    await this.fb.deleteUser(u);
+  },
+  async top(n=10){
+    const q = this.fb.query(this.fb.collection(this.db, 'users'), this.fb.orderBy('best','desc'), this.fb.limit(n));
+    return (await this.fb.getDocs(q)).docs.map(d => ({id:d.id, ...d.data()}));
+  },
+};
+function cloudError(e){
+  const c = (e && e.code) || '';
+  return ({
+    'name-taken':'That username is taken. Try another!',
+    'auth/email-already-in-use':'This email already has an account. Try Login.',
+    'auth/invalid-email':'Please enter a valid email.',
+    'auth/weak-password':'Password must be at least 6 characters.',
+    'auth/invalid-credential':'Wrong email or password.',
+    'auth/wrong-password':'Wrong email or password.',
+    'auth/user-not-found':'No account with this email. Tap "Create Account"!',
+    'auth/too-many-requests':'Too many tries. Please wait a minute.',
+    'auth/network-request-failed':'No internet connection. Check and try again.',
+    'permission-denied':'Server rejected the request. Check Firestore rules.',
+  })[c] || 'Something went wrong. Please try again.';
+}
+
+let authMode = 'login';
+function setAuthMode(m){
+  authMode = m;
+  const online = cloud.on;
+  $('tabLogin').classList.toggle('on', m==='login'); $('tabSignup').classList.toggle('on', m==='signup');
+  $('confirmWrap').classList.toggle('hidden', m==='login');
+  $('nameWrap').classList.toggle('hidden', online && m==='login');
+  $('emailWrap').classList.toggle('hidden', !online);
+  $('forgotBtn').classList.toggle('hidden', !(online && m==='login'));
+  $('uPass').placeholder = online ? 'At least 6 characters' : 'At least 4 characters';
+  $('authNote').textContent = online ? '☁️ Online account — log in from any phone.' : '🔒 Your account is saved securely on this device.';
+  $('authSubmit').textContent = m==='login' ? 'LOGIN' : 'CREATE ACCOUNT';
+  $('uPass').autocomplete = m==='login' ? 'current-password' : 'new-password';
+  $('authErr').textContent = '';
+}
+$('tabLogin').onclick = ()=>{ sfx.click(); setAuthMode('login'); };
+$('tabSignup').onclick = ()=>{ sfx.click(); setAuthMode('signup'); };
+$('eye').onclick = ()=>{ const t = $('uPass').type==='password' ? 'text' : 'password'; $('uPass').type = t; $('uPass2').type = t; };
+let authBusy = false;
+$('authForm').onsubmit = async e=>{
+  e.preventDefault(); sfx.click();
+  if (authBusy) return;
+  const name = $('uName').value.trim(), email = $('uEmail').value.trim(), pw = $('uPass').value, key = name.toLowerCase();
+  const err = m => { $('authErr').style.color = ''; $('authErr').textContent = m; sfx.miss(); };
+  const signup = authMode === 'signup';
+  if ((signup || !cloud.on) && !/^[A-Za-z0-9_]{3,15}$/.test(name)) return err('Username: 3–15 letters, numbers or _');
+  if (cloud.on && !/^\S+@\S+\.\S+$/.test(email)) return err('Please enter a valid email.');
+  if (pw.length < (cloud.on ? 6 : 4)) return err(`Password must be at least ${cloud.on ? 6 : 4} characters`);
+  if (signup && pw !== $('uPass2').value) return err('Passwords do not match');
+
+  if (cloud.on){
+    authBusy = true; $('authSubmit').textContent = 'PLEASE WAIT…';
+    try {
+      if (signup){ const r = await cloud.signup(name, email, pw); cloudLoggedIn(r.uid, r.profile, true); }
+      else { await cloud.login(email, pw); }   // onAuthStateChanged takes it from here
+    } catch(ex){ err(cloudError(ex)); }
+    authBusy = false; $('authSubmit').textContent = signup ? 'CREATE ACCOUNT' : 'LOGIN';
+    return;
+  }
+  if (signup){
+    if (accounts[key]) return err('That username is taken. Try another!');
+    const salt = randHex(16);
+    accounts[key] = Object.assign(newProfile(name), {salt, hash: await hashPw(salt, pw)});
+    LS.set('js_accounts', accounts);
+    loginAs(key, true);
+  } else {
+    const a = accounts[key];
+    if (!a) return err('No account found. Tap "Create Account"!');
+    if (await hashPw(a.salt, pw) !== a.hash) return err('Wrong password. Try again.');
+    loginAs(key);
+  }
+};
+$('forgotBtn').onclick = async ()=>{
+  sfx.click();
+  const email = $('uEmail').value.trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)){ $('authErr').textContent = 'Type your email above first.'; return; }
+  try { await cloud.reset(email); $('authErr').style.color = '#b9f6ca'; $('authErr').textContent = 'Reset link sent! Check your email.'; }
+  catch(ex){ $('authErr').style.color = ''; $('authErr').textContent = cloudError(ex); }
+};
+$('guestBtn').onclick = ()=>{ sfx.click(); userKey = '__guest'; user = Object.assign(newProfile('Guest'), LS.get('js_guest', {})); user.name='Guest'; LS.set('js_session','__guest'); showHome(); };
+function loginAs(key, isNew){
+  userKey = key; user = accounts[key]; LS.set('js_session', key);
+  $('uPass').value = ''; $('uPass2').value = '';
+  showHome();
+  voice(isNew ? `Welcome, ${user.name}!` : `Welcome back, ${user.name}!`);
+}
+let welcomed = false;
+function cloudLoggedIn(uid, profile, isNew){
+  cloud.uid = uid; userKey = uid;
+  user = Object.assign(newProfile('Player'), profile || {});
+  LS.set('js_cloudcache_' + uid, user); LS.del('js_session');
+  $('uPass').value = ''; $('uPass2').value = '';
+  if (state !== 'play' && state !== 'paused' && state !== 'dying') showHome();
+  if (!welcomed){ welcomed = true; voice(isNew ? `Welcome, ${user.name}!` : `Welcome back, ${user.name}!`); }
+}
+$('logoutBtn').onclick = async ()=>{
+  sfx.click(); LS.del('js_session');
+  if (cloud.on && cloud.uid && userKey === cloud.uid){ try { await cloud.logout(); } catch(_){} cloud.uid = null; }
+  user = null; userKey = null; welcomed = false; setAuthMode('login'); showScreen('auth');
+};
+
+/* leaderboard: online top 10, or players on this device */
+$('lbBtn').onclick = async ()=>{
+  sfx.click(); showScreen('leaders');
+  $('lbList').innerHTML = '<p class="sub">Loading…</p>';
+  let rows = [], scope;
+  try {
+    if (cloud.on){ rows = await cloud.top(10); scope = '🌍 Worldwide'; }
+    else {
+      rows = Object.entries(accounts).map(([id,a]) => ({id, ...a}));
+      const g = LS.get('js_guest', null); if (g && g.best) rows.push({id:'__guest', ...g, name:'Guest'});
+      rows.sort((a,b) => b.best - a.best); rows = rows.slice(0, 10); scope = '📱 Players on this device';
+    }
+  } catch(ex){ $('lbList').innerHTML = `<p class="err">${cloudError(ex)}</p>`; return; }
+  $('lbScope').textContent = scope;
+  if (!rows.length){ $('lbList').innerHTML = '<p class="sub">No scores yet — be the first!</p>'; return; }
+  const medal = i => ['🥇','🥈','🥉'][i] || (i+1);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  $('lbList').innerHTML = rows.map((r,i) => `<div class="lbrow ${r.id===userKey?'me':''}">
+    <div class="rk">${medal(i)}</div><div class="av" style="background:${avatarColor(r.name||'?')}">${esc((r.name||'?')[0].toUpperCase())}</div>
+    <div class="nm">${esc(r.name||'Player')}</div><div class="sc">${r.best||0}</div></div>`).join('');
+};
+$('lbBack').onclick = ()=>{ sfx.click(); showHome(); };
+
+/* delete account (required by Google Play for apps with sign-up) */
+$('delBtn').onclick = ()=>{
+  sfx.click(); $('delName').textContent = user.name; $('delPw').value = ''; $('delErr').textContent = '';
+  showScreen('delete');
+};
+$('delNo').onclick = ()=>{ sfx.click(); showHome(); };
+$('delYes').onclick = async ()=>{
+  sfx.click();
+  const pw = $('delPw').value, err = m => { $('delErr').textContent = m; sfx.miss(); };
+  if (!pw) return err('Please enter your password.');
+  $('delYes').disabled = true; $('delYes').textContent = 'DELETING…';
+  try {
+    if (cloud.on && userKey === cloud.uid){
+      await cloud.deleteAccount(pw, user.name);
+      LS.del('js_cloudcache_' + userKey); cloud.uid = null;
+    } else {
+      const a = accounts[userKey];
+      if (!a || await hashPw(a.salt, pw) !== a.hash) throw {code:'auth/wrong-password'};
+      delete accounts[userKey]; LS.set('js_accounts', accounts);
+    }
+    LS.del('js_session'); user = null; userKey = null; welcomed = false;
+    setAuthMode('login'); showScreen('auth');
+    $('authErr').style.color = '#b9f6ca'; $('authErr').textContent = 'Your account was deleted.';
+  } catch(ex){ const c = ex && ex.code; err(c === 'auth/wrong-password' || c === 'auth/invalid-credential' ? 'Wrong password.' : cloudError(ex)); }
+  $('delYes').disabled = false; $('delYes').textContent = 'DELETE FOREVER';
+};
+
+/* ---------------- screens ---------------- */
+function showScreen(id){
+  for (const s of ['auth','home','pause','over','leaders','loading','delete']) $(s).classList.toggle('hidden', s !== id);
+  $('pauseBtn').classList.toggle('hidden', id !== null || state !== 'play');
+}
+function avatarColor(n){ let h=0; for (const ch of n) h = (h*31 + ch.charCodeAt(0)) % 360; return `hsl(${h},65%,48%)`; }
+function showHome(){
+  state = 'menu'; objs = []; queue = [];
+  $('avatar').textContent = user.name[0].toUpperCase(); $('avatar').style.background = avatarColor(user.name);
+  $('pName').textContent = user.name;
+  $('pSub').textContent = userKey==='__guest' ? 'Playing as guest — create an account to keep your name'
+    : (cloud.on && userKey === cloud.uid ? '☁️ Online • ' : '') + 'Member since ' + new Date(user.created).toLocaleDateString();
+  $('logoutBtn').textContent = userKey==='__guest' ? 'Sign in' : 'Logout';
+  $('delBtn').classList.toggle('hidden', userKey==='__guest'); $('delSep').classList.toggle('hidden', userKey==='__guest');
+  $('sBest').textContent = user.best; $('sLevel').textContent = user.topLevel;
+  $('sSliced').textContent = user.sliced > 9999 ? (user.sliced/1000).toFixed(1)+'k' : user.sliced; $('sGames').textContent = user.games;
+  renderKnives(); renderToggles();
+  showScreen('home');
+}
+function renderKnives(){
+  const box = $('knives'); box.innerHTML = '';
+  let owned = 0;
+  KNIVES.forEach(k=>{
+    const unlocked = user.best >= k.need; if (unlocked) owned++;
+    const d = document.createElement('div');
+    d.className = 'knife' + (user.knife===k.id ? ' on' : '') + (unlocked ? '' : ' locked');
+    const c = document.createElement('canvas'); d.appendChild(c);
+    const s = document.createElement('span'); s.textContent = unlocked ? k.name : `Best ${k.need}`; d.appendChild(s);
+    if (!unlocked){ const l = document.createElement('div'); l.className='lock'; l.textContent='🔒'; d.appendChild(l); }
+    d.onclick = ()=>{
+      if (!unlocked){ sfx.miss(); s.textContent = `Score ${k.need} to unlock`; return; }
+      user.knife = k.id; saveUser(); sfx.chime([784,1047], .06); renderKnives();
+    };
+    box.appendChild(d);
+    requestAnimationFrame(()=>{
+      const r = c.getBoundingClientRect(), cw = Math.max(60, r.width), ch = 34, dpr = Math.min(devicePixelRatio||1, 2);
+      c.width = cw*dpr; c.height = ch*dpr; const x = c.getContext('2d'); x.scale(dpr,dpr);
+      const total = k.len + 1.05, sc = Math.min((cw-14)/total, ch/(k.w*1.6));
+      drawKnife(x, k, cw-7, ch/2, 0, sc, false);
+    });
+  });
+  $('kCount').textContent = `${owned}/${KNIVES.length}`;
+}
+function renderToggles(){
+  $('tSfx').classList.toggle('off', !settings.sfx); $('tMusic').classList.toggle('off', !settings.music); $('tVoice').classList.toggle('off', !settings.voice);
+}
+$('tSfx').onclick = ()=>{ settings.sfx = !settings.sfx; LS.set('js_settings', settings); renderToggles(); sfx.click(); };
+$('tMusic').onclick = ()=>{ settings.music = !settings.music; LS.set('js_settings', settings); renderToggles(); music.update(); sfx.click(); };
+$('tVoice').onclick = ()=>{ settings.voice = !settings.voice; LS.set('js_settings', settings); renderToggles(); sfx.click(); if (settings.voice) voice('Voice on!'); };
+
+/* ---------------- audio engine ---------------- */
+let ac = null, master, sfxBus, musicBus, revIn, noiseBuf;
+function audioInit(){
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+  master = ac.createGain(); master.gain.value = 0.9; master.connect(comp); comp.connect(ac.destination);
+  sfxBus = ac.createGain(); sfxBus.connect(master);
+  musicBus = ac.createGain(); musicBus.gain.value = 0.32; musicBus.connect(master);
+  // small reverb
+  const conv = ac.createConvolver(), len = ac.sampleRate*1.8, ir = ac.createBuffer(2, len, ac.sampleRate);
+  for (let ch=0; ch<2; ch++){ const d = ir.getChannelData(ch); for (let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.6); }
+  conv.buffer = ir; revIn = ac.createGain(); revIn.gain.value = 0.35; revIn.connect(conv); conv.connect(master);
+  noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const nd = noiseBuf.getChannelData(0); for (let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
+  music.update();
+}
+function env(g, t, a, peak, dec){ g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec); }
+function osc(type, f1, f2, dur, vol, {t=null, bus=null, rev=0, a=0.005}={}){
+  if (!ac) return; t = t ?? ac.currentTime;
+  const o = ac.createOscillator(), g = ac.createGain(); o.type = type;
+  o.frequency.setValueAtTime(f1, t); if (f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  env(g, t, a, vol, dur); o.connect(g); g.connect(bus || sfxBus);
+  if (rev){ const s = ac.createGain(); s.gain.value = rev; g.connect(s); s.connect(revIn); }
+  o.start(t); o.stop(t + a + dur + 0.05);
+}
+function noise(type, f1, f2, dur, vol, {t=null, bus=null, q=1, a=0.004, rev=0}={}){
+  if (!ac) return; t = t ?? ac.currentTime;
+  const s = ac.createBufferSource(); s.buffer = noiseBuf; s.playbackRate.value = 0.8 + Math.random()*0.4;
+  const f = ac.createBiquadFilter(); f.type = type; f.Q.value = q;
+  f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  const g = ac.createGain(); env(g, t, a, vol, dur);
+  s.connect(f); f.connect(g); g.connect(bus || sfxBus);
+  if (rev){ const r = ac.createGain(); r.gain.value = rev; g.connect(r); r.connect(revIn); }
+  s.start(t, Math.random()*0.5); s.stop(t + a + dur + 0.05);
+}
+const sfx = {
+  ok(){ return settings.sfx && ac; },
+  swoosh(){ if(!this.ok())return; noise('bandpass', 700, 5200, 0.17, 0.22, {q:1.4, a:0.02}); },
+  splat(small){ if(!this.ok())return; const p = small ? 1.6 : 0.85 + Math.random()*0.3;
+    noise('lowpass', 2200*p, 260, 0.16, 0.5, {q:2});                  // wet squish
+    osc('sine', 220*p, 70, 0.14, 0.38);                                // body thump
+    noise('highpass', 3500, 6000, 0.05, 0.16);                         // crisp cut
+    setTimeout(()=>{ if(this.ok()) noise('bandpass', 900*p, 400, 0.09, 0.14, {q:4}); }, 60); // drip
+  },
+  throw_(){ if(!this.ok())return; osc('sine', 160, 420, 0.13, 0.07); noise('bandpass', 400, 1200, 0.12, 0.04, {q:2}); },
+  fuse(){ if(!this.ok())return; noise('highpass', 5000, 7000, 0.5, 0.06, {a:0.05}); },
+  boom(){ if(!this.ok())return; noise('lowpass', 1800, 60, 1.4, 1.0, {a:0.005, rev:0.5}); osc('sine', 90, 28, 1.1, 0.9); osc('square', 60, 30, 0.3, 0.2); },
+  miss(){ if(!this.ok())return; osc('triangle', 330, 140, 0.28, 0.2); osc('sine', 165, 90, 0.3, 0.15); },
+  click(){ audioInit(); if(!this.ok())return; osc('sine', 880, 660, 0.06, 0.1); },
+  chime(notes, gap=0.08, type='triangle', vol=0.14){ if(!this.ok())return; const t = ac.currentTime;
+    notes.forEach((f,i)=>{ osc(type, f, f, 0.35, vol, {t:t+i*gap, rev:0.6}); osc('sine', f*2, f*2, 0.25, vol*0.35, {t:t+i*gap, rev:0.5}); }); },
+  ice(){ if(!this.ok())return; this.chime([1568,2093,2637,3136], 0.05, 'sine', 0.09); noise('highpass', 6000, 9000, 0.6, 0.05, {rev:0.6}); },
+  star(){ this.chime([784,988,1175,1568,1976], 0.06); },
+  levelUp(){ this.chime([523,659,784,1047,1319], 0.09, 'square', 0.07); },
+  combo(n){ const base = [659,784,988,1175,1319,1568]; this.chime(base.slice(0, Math.min(n,6)), 0.06); },
+};
+
+/* background music: soft procedural groove */
+const music = {
+  timer:null, step:0, next:0, mel:2,
+  update(){
+    const want = settings.music && ac;
+    if (want && !this.timer){ this.next = ac.currentTime + 0.1; this.timer = setInterval(()=>this.tick(), 25); }
+    if (!want && this.timer){ clearInterval(this.timer); this.timer = null; }
+  },
+  tick(){
+    const bpm = state==='play' ? 104 + Math.min(level,10)*2 : 96, sd = 60/bpm/4;
+    const roots = [48, 45, 41, 43], penta = [72,74,76,79,81,84,86];
+    while (this.next < ac.currentTime + 0.12){
+      const t = this.next, s = this.step % 64, bar = Math.floor(s/16), root = roots[bar];
+      const inPlay = state === 'play' || state === 'dying';
+      if (s % 8 === 0) osc('sine', 120, 42, 0.16, inPlay ? 0.5 : 0.28, {t, bus:musicBus});                      // kick
+      if (s % 16 === 0 || s % 16 === 10) osc('triangle', mtof(root-12), mtof(root-12), 0.42, 0.35, {t, bus:musicBus}); // bass
+      if (s % 16 === 6) osc('triangle', mtof(root-5), mtof(root-5), 0.2, 0.22, {t, bus:musicBus});
+      if (inPlay && s % 4 === 2) noise('highpass', 7000, 9000, 0.035, 0.12, {t, bus:musicBus});            // hat
+      if (inPlay && s % 16 === 8) noise('bandpass', 1800, 900, 0.1, 0.18, {t, bus:musicBus, q:0.7});        // clap
+      if (s % 2 === 0 && Math.random() < 0.38){
+        this.mel = Math.max(0, Math.min(penta.length-1, this.mel + [-2,-1,1,2][Math.floor(Math.random()*4)]));
+        osc('triangle', mtof(penta[this.mel]), mtof(penta[this.mel]), 0.22, 0.13, {t, bus:musicBus, rev:0.4});
+      }
+      if (s % 16 === 0) [0,4,7].forEach(i=>osc('sine', mtof(root+12+i), mtof(root+12+i), 0.9, 0.05, {t, bus:musicBus, a:0.08}));     // pad
+      this.next += sd; this.step++;
+    }
+  }
+};
+const mtof = m => 440 * Math.pow(2, (m-69)/12);
+
+/* announcer voice (device text-to-speech) */
+let voiceObj = null, lastVoice = 0;
+function pickVoice(){
+  try {
+    const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+    voiceObj = vs.find(v => /Google US|Samantha|Aria|Jenny|Daniel|Google UK English Male/i.test(v.name)) || vs[0] || null;
+  } catch(e){}
+}
+try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch(e){}
+function voice(text, priority=false){
+  if (!settings.voice) return;
+  const now = performance.now(); if (!priority && now - lastVoice < 900) return; lastVoice = now;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if (voiceObj) u.voice = voiceObj; u.lang = 'en-US'; u.rate = 1.08; u.pitch = 1.15; u.volume = 1;
+    speechSynthesis.speak(u);
+  } catch(e){}
+}
+
+/* ---------------- canvas / sprites ---------------- */
+const sprites = new Map();
+function sprite(e){
+  const key = e + '|' + Math.round(U);
+  if (sprites.has(key)) return sprites.get(key);
+  const s = Math.ceil(U*2.6*DPR), c = document.createElement('canvas'); c.width = c.height = s;
+  const x = c.getContext('2d'); x.textAlign='center'; x.textBaseline='middle';
+  x.font = `${Math.round(U*2.05*DPR)}px ${EMOJI}`; x.fillText(e, s/2, s/2 + s*0.04);
+  sprites.set(key, c); return c;
+}
+function resize(){
+  DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+  cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  U = Math.max(30, Math.min(W, H) * 0.075); G = H * 1.1; sprites.clear();
+  const p = document.createElement('div'); p.style.cssText = 'position:fixed;top:0;padding-top:env(safe-area-inset-top)';
+  document.body.appendChild(p); safeTop = p.offsetHeight; p.remove();
+}
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+
+/* knife drawing: tip at (x,y), pointing along ang; s = scale (px per unit) */
+function drawKnife(c, k, x, y, ang, s, glow=true){
+  const L = k.len, w = k.w;
+  c.save(); c.translate(x, y); c.rotate(ang); c.scale(s, s);
+  if (glow && k.glow){ c.shadowColor = k.glow; c.shadowBlur = 18; }
+  // blade
+  c.beginPath();
+  if (k.cleaver){
+    c.moveTo(-L, -w*0.42); c.lineTo(-0.06, -w/2); c.quadraticCurveTo(0, -w/2, 0, -w*0.42);
+    c.lineTo(0, w*0.42); c.quadraticCurveTo(0, w/2, -0.08, w/2); c.lineTo(-L, w*0.42); c.closePath();
+  } else {
+    c.moveTo(0, 0);
+    c.quadraticCurveTo(-L*0.08, -w*0.5, -L*0.3, -w*0.5); c.lineTo(-L, -w*0.5);
+    c.lineTo(-L, w*0.5); c.lineTo(-L*0.45, w*0.5); c.quadraticCurveTo(-L*0.1, w*0.45, 0, 0); c.closePath();
+  }
+  let gr;
+  if (k.rainbow){ gr = c.createLinearGradient(-L, 0, 0, 0); for (let i=0;i<=6;i++) gr.addColorStop(i/6, `hsl(${(i*55 + performance.now()/8)%360},90%,65%)`); }
+  else { gr = c.createLinearGradient(0, -w/2, 0, w/2); gr.addColorStop(0, k.blade[0]); gr.addColorStop(0.55, k.blade[0]); gr.addColorStop(1, k.blade[1]); }
+  c.fillStyle = gr; c.fill();
+  c.shadowBlur = 0;
+  c.lineWidth = 0.035; c.strokeStyle = 'rgba(0,0,0,.35)'; c.stroke();
+  // edge shine
+  c.beginPath(); c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 0.04;
+  if (k.cleaver){ c.moveTo(-L+0.05, w*0.38); c.lineTo(-0.05, w*0.42); }
+  else { c.moveTo(-L*0.9, w*0.38); c.lineTo(-L*0.45, w*0.38); c.quadraticCurveTo(-L*0.12, w*0.33, -0.05, 0.02); }
+  c.stroke();
+  if (k.cleaver){ c.fillStyle = 'rgba(40,20,10,.85)'; c.beginPath(); c.arc(-0.2, -w*0.22, 0.07, 0, Math.PI*2); c.fill(); }
+  // bolster + handle
+  c.fillStyle = '#c9ccd1'; rrect(c, -L-0.1, -w*0.55, 0.12, w*1.1, 0.03); c.fill();
+  c.fillStyle = k.handle; rrect(c, -L-0.95, -0.17, 0.87, 0.34, 0.14); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.18)'; rrect(c, -L-0.9, -0.14, 0.8, 0.08, 0.04); c.fill();
+  c.fillStyle = '#e0e0e0'; for (const rx of [-L-0.3, -L-0.7]){ c.beginPath(); c.arc(rx, 0, 0.045, 0, Math.PI*2); c.fill(); }
+  c.restore();
+}
+
+/* ---------------- game state ---------------- */
+let state = 'menu', objs = [], pieces = [], parts = [], splats = [], popups = [], trail = [], queue = [];
+let score = 0, lives = 3, level = 1, waveT = 1, freezeT = 0, frenzyT = 0, flash = 0, shake = 0, dyingT = 0;
+let banner = null, slicedRun = 0, overReason = '', menuT = 0, prevBest = 0;
+let combo = {n:0, t:0, x:0, y:0};
+const knife = {x:-999, y:-999, ang:-2.36, alpha:0, down:false, touch:false, inside:false, lastMove:0, lx:0, ly:0, lastSwoosh:0};
+
+function startGame(){
+  audioInit(); music.update();
+  state = 'play'; score = 0; lives = 3; level = 1; slicedRun = 0; prevBest = user.best;
+  objs = []; queue = []; pieces = []; waveT = 1.6; freezeT = 0; frenzyT = 0; combo.n = 0;
+  banner = {title:'LEVEL 1', sub:LEVEL_NOTES[1], t:2.2};
+  showScreen(null);
+  voice('Ready? Slice!', true);
+}
+function endGame(reason){
+  if (state !== 'play') return;
+  state = 'dying'; dyingT = reason==='bomb' ? 1.3 : 0.9; overReason = reason; $('pauseBtn').classList.add('hidden');
+}
+function showGameOver(){
+  state = 'menu';
+  const newBest = score > user.best;
+  user.best = Math.max(user.best, score); user.sliced += slicedRun; user.games++; user.topLevel = Math.max(user.topLevel, level);
+  saveUser();
+  const unlocked = KNIVES.filter(k => k.need > prevBest && k.need <= user.best);
+  $('overTitle').textContent = overReason==='bomb' ? 'BOOM! 💥' : 'GAME OVER';
+  $('overScore').textContent = score;
+  $('overInfo').textContent = `Reached Level ${level} • ${slicedRun} fruits sliced • Best ${user.best}`;
+  $('overBadge').innerHTML = newBest && score > 0 ? '<span class="badge">🏆 NEW HIGH SCORE!</span>' : '';
+  $('overUnlock').innerHTML = unlocked.map(k => `<div class="unlock">🔓 New knife unlocked: ${k.name}!</div>`).join('');
+  showScreen('over');
+  if (unlocked.length){ user.knife = unlocked[unlocked.length-1].id; saveUser(); sfx.star(); voice('New knife unlocked!', true); }
+  else if (newBest && score > 0){ sfx.levelUp(); voice('New high score!', true); }
+  else voice('Game over', true);
+}
+function pauseGame(){
+  if (state !== 'play') return;
+  state = 'paused'; $('pauseInfo').textContent = `Level ${level} • Score ${score}`; showScreen('pause'); sfx.click();
+}
+function resumeGame(){ state = 'play'; showScreen(null); sfx.click(); }
+$('pauseBtn').onclick = pauseGame;
+$('resumeBtn').onclick = resumeGame;
+$('quitBtn').onclick = ()=>{ sfx.click(); state = 'play'; endGame('quit'); state = 'menu'; showGameOver(); };
+$('playBtn').onclick = ()=>{ sfx.click(); startGame(); };
+$('againBtn').onclick = ()=>{ sfx.click(); startGame(); };
+$('homeBtn').onclick = ()=>{ sfx.click(); showHome(); };
+document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { pauseGame(); try{ speechSynthesis.cancel(); }catch(e){} } });
+
+function throwObj(kind, d){
+  const small = kind === 'small';
+  const r = (small ? U*0.62 : kind==='fruit' ? U*(0.88+Math.random()*0.25) : U*0.95) * d.size;
+  const g = G * d.g;
+  const x = W*(0.12 + Math.random()*0.76), y = H + r;
+  const peakY = H*(0.1 + Math.random()*0.32);
+  const vy = -Math.sqrt(2*g*(y-peakY)), tUp = -vy/g, tx = W*(0.25 + Math.random()*0.5);
+  const base = kind==='fruit' ? FRUITS[Math.floor(Math.random()*FRUITS.length)]
+             : small ? SMALL[Math.floor(Math.random()*SMALL.length)] : SPECIAL[kind];
+  objs.push({kind, e:base.e, c:base.c, glow:base.glow, x, y, vx:(tx-x)/tUp*0.8, vy, g, rot:0, vr:(Math.random()-.5)*5, r});
+  if (state === 'play'){ if (kind === 'bomb') sfx.fuse(); else sfx.throw_(); }
+}
+function spawnWave(){
+  const d = diff(level);
+  const n = d.minN + Math.floor(Math.random()*(d.maxN - d.minN + 1));
+  let bombs = 0;
+  for (let i=0;i<n;i++){
+    let k = 'fruit'; const r = Math.random();
+    if (r < d.bomb && bombs < Math.ceil(n/2)) { k = 'bomb'; bombs++; }
+    else if (r < d.bomb + d.ice) k = 'ice';
+    else if (r < d.bomb + d.ice + d.star) k = 'star';
+    else if (Math.random() < d.small) k = 'small';
+    queue.push({t: i*0.24, k});
+  }
+  waveT = d.gap * (0.85 + Math.random()*0.3);
+}
+function addScore(n){
+  score += n;
+  const nl = levelFor(score);
+  if (nl > level){
+    level = nl;
+    banner = {title:`LEVEL ${level}`, sub: LEVEL_NOTES[level] || 'Faster fruit — stay sharp!', t:2.2};
+    sfx.levelUp(); voice(`Level ${level}!`, true);
+    waveT = Math.max(waveT, 1.4);
+    if (level >= 3 && lives < 3){ lives++; popup(W - U*2, safeTop + U*2.2, '+1 ❤️', '#ff8a80', 1.1); }
+  }
+}
+
+/* ---------------- slicing ---------------- */
+function segDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, l=dx*dx+dy*dy; let t = l ? ((px-ax)*dx+(py-ay)*dy)/l : 0;
+  t = Math.max(0, Math.min(1, t)); const qx=ax+t*dx-px, qy=ay+t*dy-py; return Math.sqrt(qx*qx+qy*qy);
+}
+function cut(o, ang){
+  const n = {x:-Math.sin(ang), y:Math.cos(ang)}, sp = U*3.2;
+  for (const side of [-1,1]){
+    pieces.push({e:o.e, x:o.x+n.x*side*4, y:o.y+n.y*side*4, vx:o.vx*0.6 + n.x*side*sp, vy:Math.min(o.vy,0)*0.4 + n.y*side*sp - U*2,
+      g:o.g || G, rot:o.rot, vr:o.vr + side*3, clip: ang - o.rot, side, r:o.r, life:3});
+  }
+  for (let i=0;i<18;i++){
+    const a = Math.random()*Math.PI*2, s = U*(2+Math.random()*7);
+    parts.push({x:o.x, y:o.y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - U*2, r:U*(0.06+Math.random()*0.1), c:o.c, life:0.6+Math.random()*0.4, max:1});
+  }
+  const blobs = Array.from({length:7},()=>({dx:(Math.random()-.5)*o.r*1.7, dy:(Math.random()-.5)*o.r*1.7, r:o.r*(0.18+Math.random()*0.45)}));
+  splats.push({x:o.x, y:o.y, c:o.c, life:2.8, blobs});
+  if (splats.length > 16) splats.shift();
+}
+function sliceSeg(ax,ay,bx,by){
+  const ang = Math.atan2(by-ay, bx-ax);
+  const scoring = state === 'play';
+  if (!scoring && state !== 'menu') return;
+  for (let i=objs.length-1;i>=0;i--){
+    const o = objs[i];
+    if (segDist(o.x,o.y,ax,ay,bx,by) > o.r*0.92) continue;
+    objs.splice(i,1);
+    if (o.kind === 'bomb'){
+      flash = 1; shake = 0.7; sfx.boom();
+      for (let k=0;k<46;k++){ const a=Math.random()*6.28, s=U*(3+Math.random()*13);
+        parts.push({x:o.x,y:o.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:U*(0.08+Math.random()*0.16),c:Math.random()<.5?'#ffab00':'#555',life:1.1,max:1.1}); }
+      if (scoring) endGame('bomb');
+      return;
+    }
+    cut(o, ang); sfx.splat(o.kind === 'small');
+    if (!scoring) continue;
+    slicedRun++;
+    let pts = 1;
+    if (o.kind === 'ice'){ freezeT = 5; pts = 2; sfx.ice(); voice('Freeze!'); popup(o.x, o.y-o.r, 'FREEZE!', '#81d4fa', 1.2); }
+    else if (o.kind === 'star'){ frenzyT = 2.4; pts = 5; sfx.star(); voice('Fruit rain!'); popup(o.x, o.y-o.r, 'FRUIT RAIN! +5', '#ffd700', 1.2); }
+    else if (o.kind === 'small'){ pts = 2; popup(o.x, o.y, '+2', '#ffeb3b', 0.9); }
+    else popup(o.x, o.y, '+1', '#fff', 0.8);
+    addScore(pts);
+    combo.n++; combo.t = 0.3; combo.x = o.x; combo.y = o.y;
+  }
+}
+function popup(x,y,text,color,size=1){ popups.push({x,y,text,color,size,life:0.95}); }
+
+/* ---------------- input (knife) ---------------- */
+function lerpAng(a, b, t){ let d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*t; }
+cv.addEventListener('pointerdown', e=>{
+  audioInit();
+  knife.down = true; knife.touch = e.pointerType !== 'mouse'; knife.inside = true;
+  knife.x = knife.lx = e.clientX; knife.y = knife.ly = e.clientY; knife.alpha = 1;
+  trail = [{x:e.clientX, y:e.clientY, t:performance.now()}];
+  try { cv.setPointerCapture(e.pointerId); } catch(_){}
+});
+cv.addEventListener('pointermove', e=>{
+  knife.inside = true; knife.touch = e.pointerType !== 'mouse';
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  const now = performance.now();
+  for (const ev of evs){
+    const x = ev.clientX, y = ev.clientY, dx = x - knife.lx, dy = y - knife.ly, dist = Math.hypot(dx, dy);
+    if (dist > 2){
+      knife.ang = lerpAng(knife.ang, Math.atan2(dy, dx), knife.down ? 0.35 : 0.15);
+      knife.lastMove = now;
+    }
+    if (knife.down){
+      trail.push({x, y, t:now});
+      if (dist > 3) sliceSeg(knife.lx, knife.ly, x, y);
+      if (dist > 14 && now - knife.lastSwoosh > 170){ sfx.swoosh(); knife.lastSwoosh = now; }
+    }
+    knife.lx = x; knife.ly = y;
+  }
+  knife.x = knife.lx; knife.y = knife.ly;
+  if (!knife.touch) knife.alpha = 1;
+});
+const release = ()=>{ knife.down = false; };
+cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+cv.addEventListener('pointerleave', ()=>{ if (!knife.down) knife.inside = false; });
+
+/* ---------------- update ---------------- */
+function update(rdt){
+  if (state === 'paused') return;
+  const ts = freezeT > 0 ? 0.4 : 1, dt = rdt*ts;
+  freezeT = Math.max(0, freezeT - rdt); flash = Math.max(0, flash - rdt*1.3); shake = Math.max(0, shake - rdt);
+  if (banner){ banner.t -= rdt; if (banner.t <= 0) banner = null; }
+
+  if (state === 'play'){
+    const d = diff(level);
+    waveT -= dt;
+    if (frenzyT > 0){ frenzyT -= rdt; if (Math.random() < rdt*7) throwObj('fruit', d); }
+    else if (waveT <= 0 && !queue.length) spawnWave();
+    for (let i=queue.length-1;i>=0;i--){ queue[i].t -= dt; if (queue[i].t <= 0){ throwObj(queue[i].k, d); queue.splice(i,1); } }
+  }
+  if (state === 'menu'){                          // fruits fly behind the menu for fun
+    menuT -= rdt;
+    if (menuT <= 0 && objs.length < 4){ throwObj('fruit', diff(1)); menuT = 1.1 + Math.random()*1.2; }
+  }
+  if (state === 'dying'){ dyingT -= rdt; if (dyingT <= 0){ objs = []; queue = []; showGameOver(); } }
+
+  if (combo.t > 0){
+    combo.t -= rdt;
+    if (combo.t <= 0){
+      if (combo.n >= 3 && state === 'play'){
+        addScore(combo.n); popup(combo.x, combo.y - U*1.5, `${combo.n} FRUIT COMBO! +${combo.n}`, '#ffeb3b', 1.4);
+        sfx.combo(combo.n); voice(combo.n >= 5 ? 'Awesome combo!' : 'Combo!');
+      }
+      combo.n = 0;
+    }
+  }
+  for (let i=objs.length-1;i>=0;i--){
+    const o = objs[i]; o.vy += o.g*dt; o.x += o.vx*dt; o.y += o.vy*dt; o.rot += o.vr*dt;
+    if (o.vy > 0 && o.y > H + o.r*1.5){
+      objs.splice(i,1);
+      if ((o.kind === 'fruit' || o.kind === 'small') && state === 'play'){
+        lives--; popup(Math.max(U, Math.min(W-U, o.x)), H - U*1.4, '💔', '#ff5252', 1.5); sfx.miss();
+        if (lives <= 0) endGame('miss');
+      }
+    }
+  }
+  for (let i=pieces.length-1;i>=0;i--){
+    const p = pieces[i]; p.vy += p.g*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt; p.life -= dt;
+    if (p.y > H + U*3 || p.life <= 0) pieces.splice(i,1);
+  }
+  for (let i=parts.length-1;i>=0;i--){
+    const p = parts[i]; p.vy += G*0.8*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.life -= rdt;
+    if (p.life <= 0) parts.splice(i,1);
+  }
+  for (let i=splats.length-1;i>=0;i--){ splats[i].life -= rdt; if (splats[i].life <= 0) splats.splice(i,1); }
+  for (let i=popups.length-1;i>=0;i--){ const p=popups[i]; p.life -= rdt; p.y -= U*1.2*rdt; if (p.life<=0) popups.splice(i,1); }
+  const now = performance.now(); trail = trail.filter(p => now - p.t < 140);
+
+  // knife: touch -> fade after lifting; mouse -> visible while over canvas, relax to "cursor" angle when idle
+  if (knife.touch){ if (!knife.down) knife.alpha = Math.max(0, knife.alpha - rdt*4); }
+  else {
+    knife.alpha = knife.inside ? 1 : 0;
+    if (!knife.down && now - knife.lastMove > 160) knife.ang = lerpAng(knife.ang, -2.36, Math.min(1, rdt*6));
+  }
+}
+
+/* ---------------- draw ---------------- */
+function drawBg(){
+  const g = ctx.createRadialGradient(W/2, H*0.45, 0, W/2, H*0.45, Math.max(W,H)*0.8);
+  g.addColorStop(0, '#6b3e1f'); g.addColorStop(0.6, '#3d2210'); g.addColorStop(1, '#1f0f05');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  const ph = Math.max(70, H/9);
+  ctx.lineWidth = 2;
+  for (let y = ph; y < H; y += ph){
+    ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,220,180,.05)'; ctx.beginPath(); ctx.moveTo(0,y+2); ctx.lineTo(W,y+2); ctx.stroke();
+  }
+}
+function drawSprite(e, x, y, rot, r){
+  const s = sprite(e), size = U*2.6*(r/U);
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.drawImage(s, -size/2, -size/2, size, size); ctx.restore();
+}
+function drawGlow(o){
+  if (!o.glow) return;
+  const pulse = 0.35 + Math.sin(performance.now()/120)*0.15;
+  const g = ctx.createRadialGradient(o.x,o.y,o.r*0.3,o.x,o.y,o.r*1.7);
+  g.addColorStop(0, o.glow+pulse+')'); g.addColorStop(1, o.glow+'0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x,o.y,o.r*1.7,0,Math.PI*2); ctx.fill();
+}
+function drawPiece(p){
+  const s = sprite(p.e), size = U*2.6*(p.r/U);
+  ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.rotate(p.clip);
+  ctx.beginPath(); ctx.rect(-size, p.side < 0 ? -size : 0, size*2, size); ctx.clip();
+  ctx.rotate(-p.clip); ctx.drawImage(s, -size/2, -size/2, size, size);
+  ctx.restore();
+}
+function drawTrail(k){
+  if (trail.length < 2) return;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const rb = k.trail === 'rainbow', cols = rb ? null : k.trail, hue = performance.now()/4;
+  for (let pass=0; pass<2; pass++){
+    for (let i=1;i<trail.length;i++){
+      const f = i/trail.length;
+      ctx.strokeStyle = rb ? `hsla(${(hue + i*18)%360},95%,${pass?85:60}%,${pass?1:.45})` : cols[pass];
+      ctx.lineWidth = (pass ? U*0.13 : U*0.36) * f;
+      ctx.beginPath(); ctx.moveTo(trail[i-1].x, trail[i-1].y); ctx.lineTo(trail[i].x, trail[i].y); ctx.stroke();
+    }
+  }
+}
+function text(t, x, y, size, color, align='center', stroke=true){
+  ctx.font = `900 ${size}px ${UI}`; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  if (stroke){ ctx.lineWidth = size*0.16; ctx.strokeStyle = 'rgba(40,15,0,.85)'; ctx.strokeText(t, x, y); }
+  ctx.fillStyle = color; ctx.fillText(t, x, y);
+}
+function drawHud(){
+  const top = 16 + safeTop;
+  text('🍉', 18 + U*0.42, top + U*0.5, U*0.75, '#fff', 'center', false);
+  text(String(score), 18 + U*0.98, top + U*0.52, U*0.9, '#ffd54f', 'left');
+  // level pill + progress bar
+  const lx = 18, ly = top + U*1.25, bw = U*3.2, bh = U*0.42;
+  ctx.fillStyle = 'rgba(0,0,0,.4)'; rrect(ctx, lx, ly, bw, bh, bh/2); ctx.fill();
+  const prog = Math.min(1, (score - TH[level-1]) / (TH[level] - TH[level-1]));
+  const pg = ctx.createLinearGradient(lx, 0, lx+bw, 0); pg.addColorStop(0, '#76ff03'); pg.addColorStop(1, '#ffeb3b');
+  ctx.fillStyle = pg; rrect(ctx, lx, ly, Math.max(bh, bw*prog), bh, bh/2); ctx.fill();
+  text(`LEVEL ${level}`, lx + bw/2, ly + bh/2 + 1, U*0.3, '#fff', 'center', true);
+  // hearts
+  for (let i=0;i<3;i++){
+    const x = W - 18 - U*0.42 - (2-i)*U*0.9;
+    ctx.globalAlpha = i < lives ? 1 : 0.28;
+    text(i < lives ? '❤️' : '🖤', x, top + U*0.5, U*0.68, '#fff', 'center', false);
+  }
+  ctx.globalAlpha = 1;
+  if (freezeT > 0) text('❄️ ' + freezeT.toFixed(1) + 's', W/2, top + U*1.75, U*0.45, '#b3e5fc');
+}
+function drawBanner(){
+  if (!banner) return;
+  const t = banner.t, a = Math.min(1, t*2, (2.2 - t)*4), sc = 1 + Math.max(0, (2.2 - t) < 0.25 ? (0.25 - (2.2 - t))*1.6 : 0);
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(W/2, H*0.36); ctx.scale(sc, sc);
+  text(banner.title, 0, 0, U*1.25, '#ffeb3b');
+  text(banner.sub, 0, U*1.1, Math.min(U*0.45, W/(banner.sub.length*0.6)), '#fff');
+  ctx.restore();
+}
+function draw(){
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random()-.5)*shake*30, (Math.random()-.5)*shake*30);
+  drawBg();
+  for (const s of splats){
+    ctx.globalAlpha = Math.min(1, s.life/1.2) * 0.55; ctx.fillStyle = s.c;
+    for (const b of s.blobs){ ctx.beginPath(); ctx.arc(s.x+b.dx, s.y+b.dy, b.r, 0, Math.PI*2); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  for (const p of pieces) drawPiece(p);
+  for (const o of objs){ drawGlow(o); drawSprite(o.e, o.x, o.y, o.rot, o.r); }
+  for (const p of parts){ ctx.globalAlpha = Math.max(0, p.life/p.max); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (freezeT > 0){ ctx.fillStyle = `rgba(120,200,255,${0.18*Math.min(1,freezeT)})`; ctx.fillRect(0,0,W,H); }
+  for (const p of popups){ ctx.globalAlpha = Math.min(1, p.life*2); text(p.text, p.x, p.y, U*0.55*p.size, p.color); }
+  ctx.globalAlpha = 1;
+  const k = knifeById(user ? user.knife : 'kitchen');
+  drawTrail(k);
+  ctx.restore();
+  if (state === 'play' || state === 'dying' || state === 'paused') drawHud();
+  drawBanner();
+  if (knife.alpha > 0.01){
+    ctx.globalAlpha = knife.alpha;
+    drawKnife(ctx, k, knife.x, knife.y, knife.ang, U*1.05, true);
+    ctx.globalAlpha = 1;
+  }
+  if (flash > 0){ ctx.fillStyle = `rgba(255,255,255,${flash})`; ctx.fillRect(0,0,W,H); }
+}
+
+let lastT = 0;
+function loop(t){
+  const dt = Math.min(0.033, (t - lastT)/1000 || 0); lastT = t;
+  update(dt); draw(); requestAnimationFrame(loop);
+}
+
+/* ---------------- boot ---------------- */
+addEventListener('resize', resize);
+addEventListener('pointerdown', audioInit, {once:true});
+addEventListener('keydown', e=>{ if (e.key === 'Escape' || e.key === 'p') { state === 'play' ? pauseGame() : state === 'paused' && resumeGame(); } });
+resize();
+(async function boot(){
+  const s = LS.get('js_session', null);
+  if (FIREBASE_CONFIG.apiKey){ $('loadingTxt').textContent = 'Connecting…'; showScreen('loading'); }
+  const online = await cloud.init();
+  if (online){
+    let first = true;
+    cloud.fb.onAuthStateChanged(cloud.auth, async fbUser => {
+      if (fbUser){
+        if (cloud.signingUp) return;                             // signup flow sets the profile itself
+        if (cloud.uid === fbUser.uid && user) return;          // already handled (e.g. just signed up)
+        let p = null;
+        try { p = await cloud.loadProfile(fbUser.uid); } catch(e){ p = LS.get('js_cloudcache_' + fbUser.uid, null); }
+        if (!p){ p = newProfile(fbUser.displayName || 'Player'); try { await cloud.saveProfile(fbUser.uid, p); } catch(_){} }
+        cloudLoggedIn(fbUser.uid, p, false);
+      } else if (first){
+        if (s === '__guest'){ userKey = '__guest'; user = Object.assign(newProfile('Guest'), LS.get('js_guest', {})); user.name = 'Guest'; showHome(); }
+        else { setAuthMode('login'); showScreen('auth'); }
+      }
+      first = false;
+    });
+    return;
+  }
+  if (s === '__guest'){ userKey = '__guest'; user = Object.assign(newProfile('Guest'), LS.get('js_guest', {})); user.name = 'Guest'; showHome(); }
+  else if (s && accounts[s]){ userKey = s; user = accounts[s]; showHome(); }
+  else { setAuthMode('login'); showScreen('auth'); }
+})();
+requestAnimationFrame(loop);
+
+/* offline support when installed as an app */
+if ('serviceWorker' in navigator && location.protocol === 'https:'){
+  addEventListener('load', ()=>{ try { navigator.serviceWorker.register('sw.js').catch(()=>{}); } catch(e){} });
+}
+</script>
+</body>
+</html>
